@@ -13,18 +13,20 @@ def list_images():
     images = list(paths.list_images('./'))
     return(images)
 images = list_images()
+print(images)
 
 #reading into cv2
 def show_image(image):
-    image_1 = cv2.imread(image)
-    #copy image
-    image_copy = np.copy(image_1)
-    #original image
-    image_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2RGB)
-    #copy rgb to gray
-    image_1_gray = cv2.cvtColor(image_copy, cv2.COLOR_BGR2GRAY)
+    for img in image:
+        image_1 = cv2.imread(image)
+        #copy image
+        image_copy = np.copy(image_1)
+        #original image
+        image_1 = cv2.cvtColor(image_1, cv2.COLOR_BGR2RGB)
+        #copy rgb to gray
+        image_1_gray = cv2.cvtColor(image_copy, cv2.COLOR_BGR2GRAY)
 
-    plt.imshow(image_1, cmap ='gray')
+        plt.imshow(image_1, cmap ='gray')
 
 def detect_faces(image_orig):
     #new_size_image_copy = cv2.resize(image_copy, (300,300))
@@ -52,19 +54,23 @@ def detect_faces(image_orig):
 def encode(img):
     face_name = []
     known_encodings = []
+    y = 0
     for im in img:
         t = im.split('\\')
-        face_name.append(t[-2])
+        x = t[-2]
+        face_name.append(x)   
         known_img = f.load_image_file(im)
         known_img = cv2.resize(known_img, (300,300))
         known_img = cv2.cvtColor(known_img, cv2.COLOR_BGR2RGB)
         known_enc = f.face_encodings(known_img)[0]
         known_encodings.append(known_enc)
-    
+        y += 1
+        print('image {} done'.format(y)) 
     print('Encoding images complete!')
    
     
-    return known_encodings, face_name 
+    return known_encodings, face_name
+
 
 def attendance_add(name):
     with open('Attendance.csv','r+') as fe:
@@ -81,12 +87,9 @@ def attendance_add(name):
             form = now.strftime('%H:%M:%S')
             fe.writelines(f'\n{name},{form}')
         
-        
-
-            
-
-     
+   
 known_enc, known_name = encode(images)
+#print(known_name)
 processed = True
 print("[INFO] starting video stream...")
 video_reading = cv2.VideoCapture(0)
@@ -101,9 +104,6 @@ while True:
     #converting frame to RGB
     image_origs = cv2.cvtColor(image_orig, cv2.COLOR_BGR2RGB)
 
-
-    
-
     if processed:
         
         #find the locations of the faces present in the current picture frame
@@ -114,7 +114,7 @@ while True:
         for encoding, location in zip(encodings, locations):
             
             matches = f.compare_faces(known_enc, encoding)
-            print(matches)
+            #print(matches)
             name = 'Unknown'
 
             #if True in matches:
@@ -122,8 +122,8 @@ while True:
                  #name = known_name[first_match_index]
 
             face_distance = f.face_distance(known_enc, encoding)
-            print('facedistance',face_distance)
-            if np.min(face_distance) >0.55:
+            #print('facedistance',face_distance)
+            if np.min(face_distance) >0.50:
                 name = 'Unknown'
             else:
                 best_match_index = np.argmin(face_distance)
