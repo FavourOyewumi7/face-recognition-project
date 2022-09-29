@@ -55,7 +55,9 @@ def encode(img):
     face_name = []
     known_encodings = []
     y = 0
+    print(img)
     for im in img:
+        print('image-link-',im)
         t = im.split('\\')
         x = t[-2]
         face_name.append(x)   
